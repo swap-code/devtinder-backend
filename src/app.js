@@ -15,6 +15,67 @@ app.post("/signup", async (req, res) => {
 const user= new User(req.body)
 user.save();
 });
+
+app.get("/users", async (req, res) => {
+    try {
+        const users = await User.find();
+        console.log("Fetched Users:", users);
+        res.send(users);
+    } catch (error) {
+        console.error("Error fetching users:", error);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+}); 
+
+// get users by email
+app.get("/user", async (req, res) => {
+    const emailId = req.body.emailId;
+    try {
+        const user = await User.findOne({ emailId: emailId });
+        if (!user) {
+            return res.send({ message: "User not found" });
+        }
+        console.log("Fetched User:", user);
+        res.send(user);
+    } catch (error) {
+        console.error("Error fetching user:", error);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+});
+app.delete("/user", async (req, res) => {
+    
+    try {
+        const user = await User.findOneAndDelete({ _id: req.body._id });
+       // Use _id instead of _Id for case sensitivity
+       if (!user) {
+           return res.send({ message: "User not found" });
+       }
+       console.log("Deleted User:", user);
+       res.send(user);
+    } catch (error) {
+        console.error("Error deleting user:", error);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+}); 
+
+app.put("/user", async (req, res) => {
+    try {
+        const user = await User.findByIdAndUpdate(
+            { _id: req.body._id }, // Use _id instead of _Id for case sensitivity
+            req.body,
+            { new: true } // Return the updated document
+        );
+        if (!user) {
+            return res.send({ message: "User not found" });
+        }
+        console.log("Updated User:", user);
+        res.send(user);
+    } catch (error) {
+        console.error("Error updating user:", error);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+});
+
 connectDB().then(()=>{
     console.log("Database connected successfully");
     app.listen(3000,()=>{
