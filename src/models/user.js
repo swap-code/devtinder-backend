@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const validator = require('validator');
 const userSchema = new mongoose.Schema({
     firstName:{
         type: String,
@@ -16,7 +17,12 @@ const userSchema = new mongoose.Schema({
         required: true,
         unique: true,
         lowercase: true,
-        trim: true
+        trim: true,
+         validate(value){
+            if(!validator.isEmail(value)){
+                throw new Error('Invalid email format');
+            }
+         }
     },
     password: {
         type: String,
@@ -25,26 +31,31 @@ const userSchema = new mongoose.Schema({
     },
     age: {
         type: Number,
-        required: true
+       
     },
     gender:{
         type: String,
-        required: true,
+  
         enum: ['male', 'female', 'other']
     },
     photoUrl: {
         type: String,
-        required: true,
-        trim: true
+     
+        trim: true,
+        validate(value){
+            if(!validator.isURL(value)){
+                throw new Error('Invalid photo url');
+            }
+         }
     },
     about: {
         type: String,
-        required: true,
+   
         trim: true
     },
     skills: {
         type: [String],
-        required: true
+
     },
 }, {
     timestamps: true // Automatically manage createdAt and updatedAt fields
