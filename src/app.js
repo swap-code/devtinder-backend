@@ -81,66 +81,15 @@ app.get("/users", async (req, res) => {
   }
 });
 
-// get users by email
-app.get("/user", async (req, res) => {
-  const emailId = req.body.emailId;
-  try {
-    const user = await User.findOne({ emailId: emailId });
-    if (!user) {
-      return res.send({ message: "User not found" });
-    }
-    res.send(user);
-  } catch (error) {
-    console.error("Error fetching user:", error);
-    res.status(500).json({ message: "Internal Server Error" });
-  }
-});
-app.delete("/user", async (req, res) => {
-  try {
-    const user = await User.findOneAndDelete({ _id: req.body._id });
-    // Use _id instead of _Id for case sensitivity
-    if (!user) {
-      return res.send({ message: "User not found" });
-    }
-    res.send(user);
-  } catch (error) {
-    console.error("Error deleting user:", error);
-    res.status(500).json({ message: "Internal Server Error" });
-  }
+app.post("/sendConnection", userAuth, async (req,res)=>{
+ 
+  res.send({
+    message: "Connection request sent successfully",
+    user: req.user
+  });
 });
 
-app.patch("/user/:userId", async (req, res) => {
-  try {
-    const user = await User.findByIdAndUpdate(
-      req.params?.userId, // Use userId from the URL parameter
-      req.body,
-      { new: true } // Return the updated document
-    );
-    if (!user) {
-      return res.send({ message: "User not found" });
-    }
-    res.send(user);
-  } catch (error) {
-    console.error("Error updating user:", error);
-    res.status(500).json({ message: "Internal Server Error" });
-  }
-});
-app.put("/user", async (req, res) => {
-  try {
-    const user = await User.findByIdAndUpdate(
-      { _id: req.body._id }, // Use _id instead of _Id for case sensitivity
-      req.body,
-      { new: true } // Return the updated document
-    );
-    if (!user) {
-      return res.send({ message: "User not found" });
-    }
-    res.send(user);
-  } catch (error) {
-    console.error("Error updating user:", error);
-    res.status(500).json({ message: "Internal Server Error" });
-  }
-});
+
 
 connectDB()
   .then(() => {
