@@ -54,4 +54,11 @@ entry.post("/login", async (req, res) => {
   }
     
 });
+
+entry.post("/logout", (req,res)=>{
+    res.cookie("tocken", null,{expires: new Date(0)}); // Clear the cookie by setting it to an expired date
+    res.send({
+      message: "Logout successful"
+    });
+})
 module.exports = entry;
