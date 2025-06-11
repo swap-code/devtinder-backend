@@ -55,38 +55,48 @@ connect.post("/request/send/:status/:toUserId", userAuth, async (req, res) => {
   }
 });
 
-connect.post("/request/review/:status/:requestId", userAuth, async (req, res) => {
+connect.post(
+  "/request/review/:status/:requestId",
+  userAuth,
+  async (req, res) => {
+    try {
+      const loggedInUser = req.user._id;
+      const requestId = req.params.requestId;
+      const status = req.params.status;
 
-  try{
-    const userId = req.user._id;
-    const requestId = req.params.requestId;
-    const status = req.params.status;
+      // Validate the status
+      //status should be interested
+      // logedin== to UserId
 
-    // Validate the status
-    const validStatuses = ["interested", "ignored"];
-    if (!validStatuses.includes(status)) {
-      return res.status(400).json({ message: "Invalid status provided" });
-    }
+      const validStatuses = ["accepted", "rejected"];
+      if (!validStatuses.includes(status)) {
+        return res.status(400).json({ message: "Invalid status provided" });
+      }
 
-    // Find the connection request
-    const request = await connectionRequest.findById(requestId);
-    if (!request) {
-      return res.status(404).json({ message: "Connection request not found" });
-    }
+      // Find the connection request
+      const request = await connectionRequest.findAOne({
+        _id: requestId,
+        toUserId: loggedInUser._id,
+        status: "interested",
+      });
 
-    // Check if the user is authorized to review this request
-    if (request.toUserId.toString() !== userId.toString()) {
-      return res.status(403).json({ message: "Unauthorized action" });
-    }
+      if (!request) {
+        return res
+          .status(404)
+          .json({ message: "Connection request not found" });
+      }
 
-    // Update the status of the connection request
-    request.status = status;
-    await request.save();
+      request.status = status;
 
-    res.status(200).json({ message: "Connection request reviewed successfully", data: request });
+      const data = await request.save();
+
+      res
+        .status(200)
+        .json({
+          message: "Connection request " + status + " successfully",
+          data
+        });
+    } catch {}
   }
-  catch{
-
-  }
-})
+);
 module.exports = connect;
