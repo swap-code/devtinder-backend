@@ -8,13 +8,17 @@ const { validateSignupData } = require('../helper/validation');
 entry.post("/signup", async (req, res) => {
   try {
     validateSignupData(req.body);
-    const { firstName, lastName, emailId, password } = req.body;
+    const { firstName, lastName, emailId, password, photoUrl, gender,age,about } = req.body;
     const passwordHash = await bcrypt.hash(password, 10)
     const user = new User({
       firstName: firstName,
       lastName: lastName,
       emailId: emailId,
       password: passwordHash,
+      photoUrl: photoUrl,
+      gender: gender,
+      age: age,
+      about: about  
     });
     user.save();
     res.status(200).json({ message: "User data received", data: req.body });
@@ -39,12 +43,7 @@ entry.post("/login", async (req, res) => {
       res.cookie("token", token);
       res.send({
         message: "Login successful",
-        user: {
-          firstName: user.firstName,
-          lastName: user.lastName,
-          emailId: user.emailId,
-          age: user.age,
-        },
+        user
       });
     
     }

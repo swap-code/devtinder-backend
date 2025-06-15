@@ -17,6 +17,8 @@ user.get("/user/request/recieved", userAuth, async (req, res) => {
         status: "interested",
       })
       .populate("fromUserId", ["firstName", "lastName", "photoUrl", "age"]);
+
+      console.log("Connection Requests:", connectionRequests);
     res.status(200).json({
       message: "User requests fetched successfully",
       requests: connectionRequests,
@@ -26,8 +28,7 @@ user.get("/user/request/recieved", userAuth, async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 });
-
-user.get("/user/connection", userAuth, async (req, res) => {
+user.get("/user/connections", userAuth, async (req, res) => {
   try {
     const loggedInUser = req.user;
     if (!loggedInUser) {
@@ -41,23 +42,15 @@ user.get("/user/connection", userAuth, async (req, res) => {
           { toUserId: loggedInUser._id, status: "accepted" },
         ],
       })
-      .populate("fromUserId", ["firstName", "lastName", "photoUrl", "age"]);
-    res
-      .status(200)
-      .json({
-        message: "Connections fetched successfully",
-        requests: connections,
-      })
-      .populate("toUserId", ["firstName", "lastName", "photoUrl", "age"])
-      .populate("fromUserId", ["firstName", "lastName", "photoUrl", "age"]);
+      .populate("fromUserId", ["firstName", "lastName", "photoUrl", "age"])
+      .populate("toUserId", ["firstName", "lastName", "photoUrl", "age"]);
+console.log(connections)
+    const data = connections.map((connection) => ({
+      fromUserId: connection.fromUserId,
+      toUserId: connection.toUserId,
+      status: connection.status,
+    }));
 
-    const data = connections.map((connection) => {
-      return {
-        fromUserId: connection.fromUserId,
-        toUserId: connection.toUserId,
-        status: connection.status,
-      };
-    });
     res.status(200).json({
       message: "Connections fetched successfully",
       connections: data,
@@ -68,6 +61,7 @@ user.get("/user/connection", userAuth, async (req, res) => {
   }
 });
 
+
 user.get("/feed", userAuth, async (req, res) => {
   try {
     const loggedInUser = req.user;
@@ -75,8 +69,9 @@ user.get("/feed", userAuth, async (req, res) => {
       return res.status(401).json({ message: "Unauthorized" });
     }
    const page = parseInt(req.query.page) || 1;
-    const skip = parseInt((page - 1) * limit) || 0;
-    const limit = parseInt(req.query.limit) || 10;
+  const limit = parseInt(req.query.limit) || 10;
+const skip = parseInt((page - 1) * limit) || 0;
+
     const connectionRequests = await connectionRequest.find({
       $or: [{ fromUserId: loggedInUser._id }, { toUserId: loggedInUser._id }],
     }).select("fromUserId  toUserId");
@@ -93,7 +88,7 @@ user.get("/feed", userAuth, async (req, res) => {
         { _id: { $ne: loggedInUser._id } },
       ],
     })
-      .select("firstName lastName photoUrl age skills").skip(skip).limit(limit);
+      .select("firstName lastName photoUrl age skills gender about").skip(skip);
 
     res.json({ data: users });
   } catch (err) {

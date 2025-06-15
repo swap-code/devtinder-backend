@@ -63,40 +63,35 @@ connect.post(
       const loggedInUser = req.user._id;
       const requestId = req.params.requestId;
       const status = req.params.status;
-
-      // Validate the status
-      //status should be interested
-      // logedin== to UserId
-
-      const validStatuses = ["accepted", "rejected"];
-      if (!validStatuses.includes(status)) {
-        return res.status(400).json({ message: "Invalid status provided" });
-      }
-
-      // Find the connection request
-      const request = await connectionRequest.findAOne({
+      const validStatusesss = ["accepted", "rejected"];
+      // if (!validStatusesss.includes(status)) {
+      //   return res.status(400).json({ message: "Invalid status provided" });
+      // }
+      // Check if the requestId is valid and belongs to the logged-in user
+      const request = await connectionRequest.findOne({
         _id: requestId,
         toUserId: loggedInUser._id,
         status: "interested",
       });
-
+    console.log("Connection request found:", request);
       if (!request) {
         return res
           .status(404)
           .json({ message: "Connection request not found" });
       }
-
       request.status = status;
-
+      console.log("Updating connection request status to:", request.status);
       const data = await request.save();
-
+      console.log("Connection request updated:", data); 
       res
         .status(200)
         .json({
           message: "Connection request " + status + " successfully",
           data
         });
-    } catch {}
-  }
-);
+    }  catch (err) {
+  console.error("Error in reviewing connection request:", err);
+  res.status(500).json({ message: "Internal server error" });
+}
+    });
 module.exports = connect;
